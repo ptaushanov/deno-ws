@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coffee Chat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #eee;
+            margin: 40px;
+        }
+
+        body,
+        button,
+        input {
+            font-family: Inter, sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+            color: #444;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #fbfbfb;
+        }
+
+        .container {
+            min-width: 960px;
+            width: 60%;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .name-form,
+        .chat-form {
+            display: flex;
+            justify-content: center;
+        }
+
+        input {
+            padding: 16px;
+            font-size: 1.3em;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+
+        button {
+            padding: 16px;
+            font-size: 1.3em;
+            background: #00aaff;
+            color: white;
+            border: 0;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .chat-list {
+            padding: 0;
+        }
+
+        .chat-list li {
+            margin: 16px 0;
+            list-style-type: none;
+        }
+
+        .chat-list .name {
+            color: #00aaff;
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+
+        .chat-list .mssg {
+            font-size: 1.2em;
+            margin: 4px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Coffee Chat</h1>
+
+        <form class="name-form">
+            <input type="text" name="nickname" placeholder="Choose nickname" required>
+            <button>Enter Chat</button>
+        </form>
+
+        <div class="chatroom hidden">
+            <ul class="chat-list">
+                <!-- Messages go here -->
+            </ul>
+            <form class="chat-form">
+                <input type="text" name="mssg" placeholder="Type message..." required>
+                <button>Send</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let socket = new WebSocket("ws://localhost:3000/ws")
+
+        const nameForm = document.querySelector(".name-form")
+        const chatroom = document.querySelector(".chatroom")
+        const chatList = document.querySelector(".chat-list")
+        const chatForm = document.querySelector(".chat-form")
+
+        let name = "anonymous"
+
+        nameForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            name = nameForm.nickname.value
+            nameForm.classList.add("hidden")
+            chatroom.classList.remove("hidden")
+        })
+
+        chatForm.addEventListener("submit", (event) => {
+            event.preventDefault()
+            const message = chatForm.mssg.value
+            const data = { name, message }
+            chatForm.mssg.value = ''
+            socket.send(JSON.stringify(data))
+        })
+
+        socket.addEventListener("message", ({ data }) => {
+            const { name, message } = JSON.parse(data)
+            chatList.innerHTML += `
+                <li>
+                    <div class="name">${name}</div>
+                    <div class="mssg">${message}</div>
+                </li>
+            `
+        })
+    </script>
+</body>
+
+</html>
